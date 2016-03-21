@@ -1,92 +1,141 @@
 import smbus
+import time
+from datetime import datetime, timedelta
 
 
 class bq27510(object):
-    def __init__(self, bus):
-        pass
+    CNTL    = 0x00 # This and AR are the only R/W regs.
+    AR      = 0x02
+    ARTTE   = 0x04 # From here down the registers are RO.
+    TEMP    = 0x06
+    VOLT    = 0x08
+    FLAGS   = 0x0a
+    NAC     = 0x0c
+    FAC     = 0x0e
+    RM      = 0x10
+    FCC     = 0x12
+    AI      = 0x14
+    TTE     = 0x16
+    TTF     = 0x18
+    SI      = 0x1a
+    STTE    = 0x1c
+    MLI     = 0x1e
+    MLTTE   = 0x20
+    AE      = 0x22
+    AP      = 0x24
+    TTECP   = 0x26
+    RSVD    = 0x28
+    CC      = 0x2a
+    SOC     = 0x2c
 
-    def get_Control(self):
-        pass
+    ADDRESS = 0x55
 
-    def set_Control(self, value):
-        pass
+    def __init__(self, bus, retries = 5):
+        self.bus     = bus
+        self.retries = retries
 
-    def get_AtRate(self):
-        pass
+    def readReg(self, reg):
+        for retry in range(self.retries):
+            try:
+                return self.bus.read_word_data(bq27510.ADDRESS, reg)
+            except Exception as e:
+                print(e)
+                time.sleep(0.1)
+        else:
+            raise Exception("Too many retries on READ.")
 
-    def set_AtRate(self, value):
-        pass
+    @property
+    def Control(self):
+        return  self.readReg(bq27510.CNTL)
+    @Control.setter
+    def Control(self, val):
+        return self.writeReg(bq27510.CNTL)
 
-    def get_AtRateTimeToEmpty(self):
-        pass
+    @property
+    def Temperature(self):
+        return self.readReg(bq27510.TEMP)
 
-    def get_Temperature(self):
-        pass
+    @property
+    def Voltage(self):
+        voltage = self.readReg(bq27510.VOLT)
+        return float(voltage)/1000
 
-    def get_Voltage(self):
-        pass
+    @property
+    def Flags(self):
+        return self.readReg(bq27510.FLAGS)
 
-    def get_Flags(self):
-        pass
+    @property
+    def NominalAvailableCapacity(self):
+        cap = self.readReg(bq27510.NAC)
+        return float(cap)/1000
 
-    def get_NominalAvailableCapacity(self):
-        pass
+    @property
+    def FullAvailableCapacity(self):
+        cap = self.readReg(bq27510.FAC)
+        return float(cap)/1000
 
-    def get_FullAvailableCapacity(self):
-        pass
+    @property
+    def RemainingCapacity(self):
+        cap = self.readReg(bq27510.RM)
+        return float(cap)/1000
 
-    def get_RemainingCapacity(self):
-        pass
+    @property
+    def FullChargeCapacity(self):
+        cap = self.readReg(bq27510.FCC)
+        return float(cap)/1000
 
-    def get_FullChargeCapacity(self):
-        pass
+    @property
+    def AverageCurrent(self):
+        current = self.readReg(bq27510.AI)
+        if current > 32767:
+            current -= 65536
+        return float(current)/1000
 
-    def get_AverageCurrent(self):
-        pass
+    @property
+    def TimeToEmpty(self):
+        return self.readReg(bq27510.TTE)
 
-    def get_TimeToEmpty(self):
-        pass
+    @property
+    def TimeToFull(self):
+        return self.readReg(bq27510.TTF)
 
-    def get_TimeToFull(self):
-        pass
+    @property
+    def StandbyCurrent(self):
+        i = self.readReg(bq27510.SI)
+        return float(i)/1000
 
+    @property
+    def StandbyTimeToEmpty(self):
+        return self.readReg(bq27510.STTE)
 
+    @property
+    def MaxLoadCurrent(self):
+        i = self.readReg(bq27510.MLI)
+        return float(i)/1000
 
+    @property
+    def MaxLoadTimeToEmpty(self):
+        return self.readReg(bq27510.MLTTE)
 
+    @property
+    def AvailableEnergy(self):
+        ae = self.readReg(bq27510.AE)
+        return float(ae)/1000
 
-address   = 0x55
-pmaddress = 0x09
+    @property
+    def AveragePower(self):
+        ap = self.readReg(bq27510.AP)
+        return float(ap)/1000
 
-bus  = smbus.SMBus(1)
+    @property
+    def TTEatConstantPower(self):
+        return self.readReg(bq27510.TTECP)
 
-# Enable full 500mA charging in PMIC
-bus.write_byte_data(pmaddress, 0x0f, 0x03)
+    @property
+    def CycleCount(self):
+        return self.readReg(bq27510.CC)
 
-
-data = bus.read_word_data(address, 0x0e)
-print data
-data = bus.read_word_data(address, 0x10)
-print data
-data = bus.read_word_data(address, 0x12)
-print data
-
-
-data = bus.read_word_data(address, 0x2a)
-print data
-data = bus.read_word_data(address, 0x2c)
-print data
-
-data = bus.read_word_data(address, 0x08)
-print data
-data = bus.read_word_data(address, 0x14)
-if data > 32767:
-    data -= 65536
-print data
-
-data = bus.read_word_data(address, 0x16)
-print data
-print("Time To Empty: %d:%02d" % (data/60, data%60))
-data = bus.read_word_data(address, 0x18)
-print data
-print("Time To Full:  %d:%02d" % (data/60, data%60))
+    @property
+    def StateOfCharge(self):
+        return self.readReg(bq27510.SOC)
 
