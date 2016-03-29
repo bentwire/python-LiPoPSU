@@ -41,9 +41,7 @@ def battery_data(battery):
     fcc = battery.FullChargeCapacity
     rc  = battery.RemainingCapacity
 
-    print("SOC: %3.2d%%\tV: %4.3fV\tI: %4.3fA\tTTE: %s\t \
-          TTF: %s\tNAC: %4.3fAh\tFAC: %4.3fAh\tFCC: %4.3fAh\t \
-          RC: %4.3fAh" % (soc, v, ac, tte, ttf, nac, fac, fcc, rc))
+    print("SOC: %3.2d%%\tV: %4.3fV\tI: %4.3fA\tTTE: %s\tTTF: %s\tNAC: %4.3fAh\tFAC: %4.3fAh\tFCC: %4.3fAh\tRC: %4.3fAh" % (soc, v, ac, tte, ttf, nac, fac, fcc, rc))
     return [
         {
             "measurement": "battery_status",
@@ -65,7 +63,6 @@ def battery_data(battery):
 
 def run():
     arguments = docopt(__doc__, version='0.1.0')
-    print(arguments)
 
     host     = arguments['--host']
     port     = arguments['--port']
