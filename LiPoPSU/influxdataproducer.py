@@ -1,13 +1,33 @@
 #!/usr/bin/env python
 
-from datetime import timedelta, datetime;
-import os
+"""Generate time series data for influxdb.
+
+Usage:
+    influx-data-producer [--host=<dbhost>] [--port=<dbport>] [--dbname=<name>] [--dbpass=<passwd>] [--dbuser=<user>]
+
+Options:
+    -h, --help  Show this screen.
+    --host=<dbhost>  The influxdb host [default: localhost]
+    --port=<dbport>  The influxdb port [default: 8086]
+"""
+
+# from datetime import timedelta, datetime;
+# import os
 import time
 from influxdb import InfluxDBClient
-import smbus
 from LiPoPSU import bq27510
-from RPi import GPIO
 from docopt import docopt
+
+try:
+    from RPi import GPIO
+except Exception as e:
+    print("Demo mode activated.")
+
+try:
+    import smbus
+except:
+    print("Demo mode activated")
+
 
 def battery_data(battery):
     tte = battery.TimeToEmpty
@@ -21,7 +41,9 @@ def battery_data(battery):
     fcc = battery.FullChargeCapacity
     rc  = battery.RemainingCapacity
 
-    print("SOC: %3.2d%%\tV: %4.3fV\tI: %4.3fA\tTTE: %s\tTTF: %s\tNAC: %4.3fAh\tFAC: %4.3fAh\tFCC: %4.3fAh\tRC: %4.3fAh" % (soc, v, ac, tte, ttf, nac, fac, fcc, rc))
+    print("SOC: %3.2d%%\tV: %4.3fV\tI: %4.3fA\tTTE: %s\t \
+          TTF: %s\tNAC: %4.3fAh\tFAC: %4.3fAh\tFCC: %4.3fAh\t \
+          RC: %4.3fAh" % (soc, v, ac, tte, ttf, nac, fac, fcc, rc))
     return [
         {
             "measurement": "battery_status",
@@ -36,23 +58,28 @@ def battery_data(battery):
                 "FullChargeCapacity": fcc,
                 "RemaningCapacity": rc
             },
-            'points': [battery.StateOfCharge, battery.Voltage, battery.AverageCurrent, str(tte), str(ttf), battery.NominalAvailableCapacity, battery.FullAvailableCapacity, battery.FullChargeCapacity, battery.RemainingCapacity],
             'name': 'Battery Status',
-            'columns': ['StateOfCharge', 'Volts', 'Amps', 'TimeToEmpty', 'TimeToFull', 'NominalAvailableCapacity', 'FullAvalableCapacity', 'FullChargeCapacity', 'RemainingCapacity'],
         }
     ]
 
+
 def run():
-    influx = InfluxDBClient(server, port, database, password, user)
+    arguments = docopt(__doc__, version='0.1.0')
+    print(arguments)
+
+    host     = arguments['--host']
+    port     = arguments['--port']
+    database = arguments['--dbname']
+    password = arguments['--dbpass']
+    user     = arguments['--dbuser']
+
+    influx = InfluxDBClient(host, port, database, password, user)
 
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(18, GPIO.OUT)
 
     GPIO.output(18, 1)
-
-    address   = 0x55
-    pmaddress = 0x09
 
     bus  = smbus.SMBus(1)
 
@@ -61,4 +88,3 @@ def run():
     while True:
         influx.write_points(battery_data(battery))
         time.sleep(5)
-

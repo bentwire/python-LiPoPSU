@@ -1,3 +1,4 @@
 RPi.GPIO
 # smbus  This is provided by a raspbian package for now.
 docopt
+influxdb

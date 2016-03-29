@@ -1,6 +1,4 @@
-import smbus
 import time
-from datetime import datetime, timedelta
 
 
 class bq27510(object):
@@ -46,7 +44,8 @@ class bq27510(object):
 
     @property
     def Control(self):
-        return  self.readReg(bq27510.CNTL)
+        return self.readReg(bq27510.CNTL)
+
     @Control.setter
     def Control(self, val):
         return self.writeReg(bq27510.CNTL)
@@ -138,4 +137,3 @@ class bq27510(object):
     @property
     def StateOfCharge(self):
         return self.readReg(bq27510.SOC)
-
