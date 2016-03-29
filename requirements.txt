@@ -1,2 +1,3 @@
 RPi.GPIO
-smbus
+# smbus  This is provided by a raspbian package for now.
+docopt
