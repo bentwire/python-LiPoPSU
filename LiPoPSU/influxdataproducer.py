@@ -65,7 +65,15 @@ def battery_data(battery):
                 "NominalAvailableCapacity": nac,
                 "FullAvailableCapacity": fac,
                 "FullChargeCapacity": fcc,
-                "RemaningCapacity": rc
+                "RemaningCapacity": rc,
+                "StandbyCurrent": sc,
+                "StandbyTimeToEmpty": stte,
+                "MaxLoadCurrent": mlc,
+                "MaxLoadTimeToEmpty": mltte,
+                "AvailableEnergy": ae,
+                "AveragePower": ap,
+                "TTEatConstantPower": ttecp,
+                "CycleCount": cc
             },
             'name': 'Battery Status',
         }
