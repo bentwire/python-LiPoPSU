@@ -41,6 +41,17 @@ def battery_data(battery):
     fcc = battery.FullChargeCapacity
     rc  = battery.RemainingCapacity
 
+    sc      = battery.StandbyCurrent
+    stte    = battery.StandbyTimeToEmpty
+    mlc     = battery.MaxLoadCurrent
+    mltte   = battery.MaxLoadTimeToEmpty
+
+    ae      = battery.AvailableEnergy
+    ap      = battery.AveragePower
+    ttecp   = battery.TTEatConstantPower
+
+    cc      = battery.CycleCount
+
     print("SOC: %3.2d%%\tV: %4.3fV\tI: %4.3fA\tTTE: %s\tTTF: %s\tNAC: %4.3fAh\tFAC: %4.3fAh\tFCC: %4.3fAh\tRC: %4.3fAh" % (soc, v, ac, tte, ttf, nac, fac, fcc, rc))
     return [
         {
@@ -76,7 +87,7 @@ def run():
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(18, GPIO.OUT)
 
-    GPIO.output(18, 1)
+    GPIO.output(18, 0)
 
     bus  = smbus.SMBus(1)
 
