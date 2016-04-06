@@ -102,5 +102,9 @@ def run():
     battery = bq27510.bq27510(bus)
 
     while True:
-        influx.write_points(battery_data(battery))
+        try:
+            influx.write_points(battery_data(battery))
+        except Exception as e:
+            print("Exception: '%s'" % (e))
+            continue
         time.sleep(5)
