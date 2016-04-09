@@ -3,7 +3,7 @@
 """Generate time series data for influxdb.
 
 Usage:
-    influx-data-producer [--host=<dbhost>] [--port=<dbport>] [--dbname=<name>] [--dbpass=<passwd>] [--dbuser=<user>]
+    influx-data-producer [--host=<dbhost>] [--port=<dbport>] [--dbname=<name>] [--dbpass=<passwd>] [--dbuser=<user>] [--ssl]
 
 Options:
     -h, --help  Show this screen.
@@ -91,14 +91,16 @@ def run():
     database = arguments['--dbname']
     password = arguments['--dbpass']
     user     = arguments['--dbuser']
+	
+    ssl      = arguments['--ssl']
 
-    influx = InfluxDBClient(host, port, database, password, user)
+    influx = InfluxDBClient(host, port, database, password, user, ssl=ssl, verify_ssl=ssl)
 
     GPIO.setwarnings(False)
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(18, GPIO.OUT)
 
-    GPIO.output(18, 0)
+    GPIO.output(18, 1)
 
     bus  = smbus.SMBus(1)
 
