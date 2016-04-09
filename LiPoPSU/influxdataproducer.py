@@ -52,6 +52,8 @@ def battery_data(battery):
 
     cc      = battery.CycleCount
 
+    temp    = battery.Temperature
+
     print("SOC: %3.2d%%\tV: %4.3fV\tI: %4.3fA\tTTE: %s\tTTF: %s\tNAC: %4.3fAh\tFAC: %4.3fAh\tFCC: %4.3fAh\tRC: %4.3fAh" % (soc, v, ac, tte, ttf, nac, fac, fcc, rc))
     return [
         {
@@ -73,7 +75,8 @@ def battery_data(battery):
                 "AvailableEnergy": ae,
                 "AveragePower": ap,
                 "TTEatConstantPower": ttecp,
-                "CycleCount": cc
+                "CycleCount": cc,
+                "Temperature": temp
             },
             'name': 'Battery Status',
         }
