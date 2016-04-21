@@ -3,12 +3,13 @@
 """Generate time series data for influxdb.
 
 Usage:
-    influx-data-producer [--host=<dbhost>] [--port=<dbport>] [--dbname=<name>] [--dbpass=<passwd>] [--dbuser=<user>] [--loglevel=<LEVEL>]
+    influx-data-producer [--host=<dbhost>] [--port=<dbport>] [--ssl] [--dbname=<name>] [--dbpass=<passwd>] [--dbuser=<user>] [--loglevel=<LEVEL>]
 
 Options:
     -h, --help  Show this screen.
     --host=<dbhost>  The influxdb host [default: localhost]
     --port=<dbport>  The influxdb port [default: 8086]
+    --ssl            Enable TLS support
     --loglevel=<LEVEL>  The log level to report at. [default: INFO]
 """
 
@@ -86,6 +87,7 @@ def run():
 
     host     = arguments['--host']
     port     = arguments['--port']
+    ssl      = arguments['--ssl']
     database = arguments['--dbname']
     password = arguments['--dbpass']
     user     = arguments['--dbuser']
@@ -96,7 +98,7 @@ def run():
     logging.basicConfig(level=getattr(logging, loglevel.upper()))
 
     log.debug("Initializing influxDB connection")
-    influx = InfluxDBClient(host, port, database, password, user)
+    influx = InfluxDBClient(host, port, database, password, user, ssl=ssl, verify_ssl=ssl)
 
     log.debug("Initializing SMBus connection")
     try:
