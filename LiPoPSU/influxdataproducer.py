@@ -3,12 +3,13 @@
 """Generate time series data for influxdb.
 
 Usage:
-    influx-data-producer [--host=<dbhost>] [--port=<dbport>] [--dbname=<name>] [--dbpass=<passwd>] [--dbuser=<user>]
+    influx-data-producer [--host=<dbhost>] [--port=<dbport>] [--dbname=<name>] [--dbpass=<passwd>] [--dbuser=<user>] [--loglevel=<LEVEL>]
 
 Options:
     -h, --help  Show this screen.
     --host=<dbhost>  The influxdb host [default: localhost]
     --port=<dbport>  The influxdb port [default: 8086]
+    --loglevel=<LEVEL>  The log level to report at. [default: INFO]
 """
 
 # from datetime import timedelta, datetime;
@@ -18,10 +19,7 @@ from influxdb import InfluxDBClient
 from LiPoPSU import bq27510
 from docopt import docopt
 
-try:
-    from RPi import GPIO
-except Exception as e:
-    print("Demo mode activated.")
+import logging
 
 try:
     import smbus
@@ -54,7 +52,7 @@ def battery_data(battery):
 
     temp    = battery.Temperature
 
-    print("SOC: %3.2d%%\tV: %4.3fV\tI: %4.3fA\tTTE: %s\tTTF: %s\tNAC: %4.3fAh\tFAC: %4.3fAh\tFCC: %4.3fAh\tRC: %4.3fAh" % (soc, v, ac, tte, ttf, nac, fac, fcc, rc))
+#    print("SOC: %3.2d%%\tV: %4.3fV\tI: %4.3fA\tTTE: %s\tTTF: %s\tNAC: %4.3fAh\tFAC: %4.3fAh\tFCC: %4.3fAh\tRC: %4.3fAh" % (soc, v, ac, tte, ttf, nac, fac, fcc, rc))
     return [
         {
             "measurement": "battery_status",
@@ -84,30 +82,38 @@ def battery_data(battery):
 
 
 def run():
-    arguments = docopt(__doc__, version='0.1.0')
+    arguments = docopt(__doc__, version='0.1.1')
 
     host     = arguments['--host']
     port     = arguments['--port']
     database = arguments['--dbname']
     password = arguments['--dbpass']
     user     = arguments['--dbuser']
+    loglevel = arguments['--loglevel']
+    log      = logging.getLogger('influx-data-producer')
 
+    log.setLevel(getattr(logging, loglevel.upper()))
+    logging.basicConfig(level=getattr(logging, loglevel.upper()))
+
+    log.debug("Initializing influxDB connection")
     influx = InfluxDBClient(host, port, database, password, user)
 
-    GPIO.setwarnings(False)
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(18, GPIO.OUT)
+    log.debug("Initializing SMBus connection")
+    try:
+        bus = smbus.SMBus(1)
+    except Exception as e:
+        bus = None
 
-    GPIO.output(18, 0)
-
-    bus  = smbus.SMBus(1)
-
+    log.debug("Initializing battery object")
     battery = bq27510.bq27510(bus)
 
     while True:
         try:
-            influx.write_points(battery_data(battery))
+            data = battery_data(battery)
+            log.debug("Gathered data points.")
+            log.debug(data)
+            influx.write_points(data)
         except Exception as e:
-            print("Exception: '%s'" % (e))
+            log.warning("Caught exception while uploading data point: '%s'" % (e))
             continue
         time.sleep(5)

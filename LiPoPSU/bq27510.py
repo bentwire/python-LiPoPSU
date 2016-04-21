@@ -1,4 +1,7 @@
 import time
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class bq27510(object):
@@ -37,7 +40,7 @@ class bq27510(object):
             try:
                 return self.bus.read_word_data(bq27510.ADDRESS, reg)
             except Exception as e:
-                print(e)
+                log.error("Exception during read: %s" % (e))
                 time.sleep(0.1)
         else:
             raise Exception("Too many retries on READ.")
